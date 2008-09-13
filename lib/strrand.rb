@@ -6,6 +6,55 @@
 #
 # StringRandom is derived from the String::Random written in Perl.
 # See http://search.cpan.org/~steve/String-Random-0.22/
+#
+# == Example
+#
+#    string_random = StringRandom.new
+#    string_random.rand_pattern('CCcc!ccn')  #=> ZIop$ab1
+#
+# refer to test_strrand.rb
+#
+# == Format
+#
+# === Regular expression syntax
+#
+# *_regex methods use this rule.
+#
+# The following regular expression elements are supported.
+#
+#  - \w  Alphanumeric + "_".
+#  - \d  Digits.
+#  - \W  Printable characters other than those in \w.
+#  - \D  Printable characters other than those in \d.
+#  - .   Printable characters.
+#  - []  Character classes.
+#  - {}  Repetition.
+#  - *   Same as {0,}.
+#  - ?   Same as {0,1}.
+#  - +   Same as {1,}.
+#
+# === Patterns
+#
+# rand_pattern and rand_string methods use this rule.
+#
+# The following patterns are pre-defined.
+#
+#  - c  Any lowercase character [a-z]
+#  - C  Any uppercase character [A-Z]
+#  - n  Any digit [0-9]
+#  - !  A punctuation character [~`!@$%^&*()-_+={}[]|\:;"'.<>?/#,]
+#  - .  Any of the above
+#  - s  A "salt" character [A-Za-z0-9./]
+#  - b  Any binary data
+#
+# Pattern can modify and add as bellow.
+#
+#    string_random['C'] = ['n']
+#    string_random['A'] = [('A'..'Z').to_a, ('A'..'Z').to_a]
+#
+# Pattern must be a flattened array(nested or other type raise exception).
+#
+
 
 class StringRandom
   Upper  = ('A'..'Z').to_a
@@ -49,9 +98,36 @@ class StringRandom
     'b' => Binary
   }
 
+  #
+  # Class method version of rand_regex.
+  #
+  def self.rand_regex(patterns)
+    return StringRandom.new.rand_regex(patterns)
+  end
+
+  #
+  # Same as StringRandom#rand_pattern if single argument.
+  # Optionally, references to lists containing 
+  # other patterns can be passed to the function.  
+  # Those lists will be used for 0 through 9 in the pattern 
+  # (The pattern of after 10 can't refer).
+  #
+  def self.rand_string(pattern, *pattern_list)
+    string_random = StringRandom.new
+    
+    pattern_list.each_with_index do |new_pattern, i|
+      string_random[i.to_s] = new_pattern
+    end
+
+    return string_random.rand_pattern(pattern)
+  end
+
+  #
+  # _max_ is default length for creating random string
+  #
   def initialize(max = 10)
     @max   = max
-    @old   = OldPattern.clone
+    @map   = OldPattern.clone
     @regch = {
       "\\" => method(:regch_slash),
       '.'  => method(:regch_dot),
@@ -63,26 +139,50 @@ class StringRandom
     }
   end
 
+  #
+  # Returns a random string that will match 
+  # the regular expression passed in the list argument
+  #
   def rand_regex(patterns)
     return _rand_regex(patterns) unless patterns.instance_of?(Array)
 
-    results = []
+    result = []
     patterns.each do |pattern|
-      results << _rand_regex(pattern)
+      result << _rand_regex(pattern)
     end
-    results
+    result
   end
 
+  #
+  # This method returns a random string based on 
+  # the concatenation of all the pattern strings in the list.
+  #
+  def rand_pattern(patterns)
+    return _rand_pattern(patterns) unless patterns.instance_of?(Array)
+
+    result = []
+    patterns.each do |pattern|
+      result << _rand_pattern(pattern)
+    end
+    result
+  end
+
+  #
+  # Returns a random string pattern
+  #
   def [](key)
-    @old[key]
+    @map[key]
   end
 
-  def []=(key, val)
-    @old[key] = val
-  end
+  #
+  # Adds a random string pattern
+  #
+  # _pattern_ must be flattend array
+  #
+  def []=(key, pattern)
+    raise "pattern is Array only" unless pattern.instance_of?(Array)
 
-  def rand_pattern(pattern)
-
+    @map[key] = pattern
   end
 
   private
@@ -97,7 +197,7 @@ class StringRandom
         @regch[ch].call(ch, chars, string)
       else
         warn "'#{ch}' not implemented. treating literally." if ch =~ non_ch
-        string << ch
+        string << [ch]
       end
     end
 
@@ -108,7 +208,21 @@ class StringRandom
     result
   end
 
-  # These characters are treated specially in randregex.
+  def _rand_pattern(pattern)
+    string = ''
+
+    pattern.split(//).each do |ch|
+      raise %Q(Unknown pattern character "#{ch}"!) unless @map.has_key?(ch)
+      string << @map[ch][rand(@map[ch].size)]
+    end
+
+    string
+  end
+
+  #
+  # The folloing methods are defined for regch.
+  # These characters are treated specially in rand_regex.
+  #
   def regch_slash(ch, chars, string)
     raise "regex not terminated" if chars.empty?
 
@@ -155,15 +269,15 @@ class StringRandom
   end
 
   def regch_asterisk(ch, chars, string)
-    chars.unshift("{0,}".split(""))
+    chars = "{0,}".split("").concat(chars)
   end
 
   def regch_plus(ch, chars, string)
-    chars.unshift("{1,}".split(""))
+    chars = "{1,}".split("").concat(chars)
   end
 
   def regch_question(ch, chars, string)
-    chars.unshift("{0,1}".split(""))
+    chars = "{0,1}".split("").concat(chars)
   end
 
   def regch_brace(ch, chars, string)
@@ -176,19 +290,16 @@ class StringRandom
       tmp << ch
     end
 
-    if tmp =~ /,/
+    tmp = if tmp =~ /,/
       raise "malformed range {#{tmp}}" unless tmp =~ /^(\d*),(\d*)$/
 
-      p local_variables
-      p self.instance_variable_get("@max")
       min = $1.length.nonzero? ? $1.to_i : 0
       max = $2.length.nonzero? ? $2.to_i : @max
-      puts "#{min.class} : #{max.class}"
       raise "bad range {#{tmp}}" if min > max
 
-      tmp = (min == max ? min : min + rand(max - min + 1))
+      min == max ? min : min + rand(max - min + 1)
     else
-      tmp = tmp.to_i
+      tmp.to_i
     end
 
     if tmp.nonzero?
