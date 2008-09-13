@@ -25,7 +25,7 @@ class TestStringRandom < Test::Unit::TestCase
     assert_respond_to(@string_random, :rand_pattern)
   end
 
-  def test_rand_regex
+  def _test_rand_regex
     patterns = ['\d\d\d',
                 '\w\w\w',
                 '[ABC][abc]',
@@ -47,11 +47,21 @@ class TestStringRandom < Test::Unit::TestCase
 
     patterns.each do |pattern|
       result = @string_random.rand_regex(pattern)
-      assert_match(/#{pattern}/, result)
+      assert_match(/#{pattern}/, result, "#{result} is invalid: pattern #{pattern}")
     end
 
     result = @string_random.rand_regex(patterns)
     assert_equal(result.size, patterns.size)
+  end
+
+  def test_rand_regex_invalid
+    patterns = ['[a-z]{a}',
+                '0{,,}',
+                '9{1,z}']
+
+    patterns.each do |pattern|
+      assert_raise(RuntimeError, "Non expected: #{pattern}") { @string_random.rand_regex(pattern) }
+    end
   end
 
   def test_rand_pattern
