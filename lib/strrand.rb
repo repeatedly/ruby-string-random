@@ -251,12 +251,11 @@ class StringRandom
     tmp = []
     while ch = chars.shift and ch != ']'
       if ch == '-' and !chars.empty? and !tmp.empty?
-        ch  = chars.shift
-        num = tmp.last[0]
-        max = ch[0]
-        while num < max
-          num += 1
-          tmp << num.chr
+        max = chars.shift
+        min = tmp.last
+        while min < max
+          min  = min.succ
+          tmp << min
         end
       else
         warn "${ch}' will be treated literally inside []" if ch =~ /\W/
