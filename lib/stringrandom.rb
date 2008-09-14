@@ -1,5 +1,6 @@
 # -*- mode: ruby; coding: utf-8 -*-
 
+#
 # = strrand.rb: Generates a random string from a pattern
 #
 # Author:: Tama <repeatedly@gmail.com>
@@ -10,7 +11,7 @@
 # == Example
 #
 #    string_random = StringRandom.new
-#    string_random.rand_pattern('CCcc!ccn')  #=> ZIop$ab1
+#    string_random.random_pattern('CCcc!ccn')  #=> ZIop$ab1
 #
 # refer to test_strrand.rb
 #
@@ -35,7 +36,7 @@
 #
 # === Patterns
 #
-# rand_pattern and rand_string methods use this rule.
+# random_pattern and random_string methods use this rule.
 #
 # The following patterns are pre-defined.
 #
@@ -50,11 +51,10 @@
 # Pattern can modify and add as bellow.
 #
 #    string_random['C'] = ['n']
-#    string_random['A'] = [('A'..'Z').to_a, ('A'..'Z').to_a]
+#    string_random['A'] = ('A'..'Z').to_a | ('A'..'Z').to_a
 #
-# Pattern must be a flattened array(nested or other type raise exception).
+# Pattern must be a flattened array(other types undefined behavior).
 #
-
 
 class StringRandom
   Upper  = ('A'..'Z').to_a
@@ -87,7 +87,7 @@ class StringRandom
     '\e' => ["\e"]
   }
   # What's important is how they relate to the pattern characters.
-  # These are the old patterns for rand_pattern.
+  # These are the old patterns for random_pattern.
   OldPattern = {
     'C' => Upper,
     'c' => Lower,
@@ -99,27 +99,27 @@ class StringRandom
   }
 
   #
-  # Class method version of rand_regex.
+  # Class method version of random_regex.
   #
-  def self.rand_regex(patterns)
-    return StringRandom.new.rand_regex(patterns)
+  def self.random_regex(patterns)
+    return StringRandom.new.random_regex(patterns)
   end
 
   #
-  # Same as StringRandom#rand_pattern if single argument.
+  # Same as StringRandom#random_pattern if single argument.
   # Optionally, references to lists containing 
   # other patterns can be passed to the function.  
   # Those lists will be used for 0 through 9 in the pattern 
   # (The pattern of after 10 can't refer).
   #
-  def self.rand_string(pattern, *pattern_list)
+  def self.random_string(pattern, *pattern_list)
     string_random = StringRandom.new
     
     pattern_list.each_with_index do |new_pattern, i|
       string_random[i.to_s] = new_pattern
     end
 
-    return string_random.rand_pattern(pattern)
+    return string_random.random_pattern(pattern)
   end
 
   #
@@ -143,26 +143,26 @@ class StringRandom
   # Returns a random string that will match 
   # the regular expression passed in the list argument
   #
-  def rand_regex(patterns)
-    return _rand_regex(patterns) unless patterns.instance_of?(Array)
+  def random_regex(patterns)
+    return _random_regex(patterns) unless patterns.instance_of?(Array)
 
     result = []
     patterns.each do |pattern|
-      result << _rand_regex(pattern)
+      result << _random_regex(pattern)
     end
     result
   end
 
   #
-  # This method returns a random string based on 
-  # the concatenation of all the pattern strings in the list.
+  # Returns a random string based on the concatenation
+  # of all the pattern strings in the list.
   #
-  def rand_pattern(patterns)
-    return _rand_pattern(patterns) unless patterns.instance_of?(Array)
+  def random_pattern(patterns)
+    return _random_pattern(patterns) unless patterns.instance_of?(Array)
 
     result = []
     patterns.each do |pattern|
-      result << _rand_pattern(pattern)
+      result << _random_pattern(pattern)
     end
     result
   end
@@ -177,17 +177,15 @@ class StringRandom
   #
   # Adds a random string pattern
   #
-  # _pattern_ must be flattend array
+  # _pattern_ must be flattened array
   #
   def []=(key, pattern)
-    raise "pattern is Array only" unless pattern.instance_of?(Array)
-
     @map[key] = pattern
   end
 
   private
 
-  def _rand_regex(pattern)
+  def _random_regex(pattern)
     string = []
     chars  = pattern.split(//)
     non_ch = /[\$\^\*\(\)\+\{\}\]\|\?]/  # not supported chars
@@ -208,7 +206,7 @@ class StringRandom
     result
   end
 
-  def _rand_pattern(pattern)
+  def _random_pattern(pattern)
     string = ''
 
     pattern.split(//).each do |ch|
@@ -221,7 +219,7 @@ class StringRandom
 
   #
   # The folloing methods are defined for regch.
-  # These characters are treated specially in rand_regex.
+  # These characters are treated specially in random_regex.
   #
   def regch_slash(ch, chars, string)
     raise "regex not terminated" if chars.empty?
