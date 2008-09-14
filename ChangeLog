@@ -1,5 +1,21 @@
 2008-09-14 tama <repeatedly@gmail.com>
 
+	* Rename lib/strrand.rb -> lib/stringrandom.rb.
+
+	* Rename test/test_strrand.rb -> test/test_stringrandom.rb
+
+	* Modify method names.
+
+		* rand_regex -> random_regex
+
+		* rand_pattern -> random_pattern
+
+		* rand_string  -> random_string
+
+	* Add undefined behavior tests for random_pattern.
+
+2008-09-14 tama <repeatedly@gmail.com>
+
 	* Version 0.1.1.
 
 	* Fix for Ruby 1.9.
