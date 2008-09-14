@@ -13,7 +13,7 @@
 #    string_random = StringRandom.new
 #    string_random.random_pattern('CCcc!ccn')  #=> ZIop$ab1
 #
-# refer to test_strrand.rb
+# refer to test/test_stringrandom.rb
 #
 # == Format
 #
@@ -23,16 +23,16 @@
 #
 # The following regular expression elements are supported.
 #
-#  - \w  Alphanumeric + "_".
-#  - \d  Digits.
-#  - \W  Printable characters other than those in \w.
-#  - \D  Printable characters other than those in \d.
-#  - .   Printable characters.
-#  - []  Character classes.
-#  - {}  Repetition.
-#  - *   Same as {0,}.
-#  - ?   Same as {0,1}.
-#  - +   Same as {1,}.
+# [\w]  Alphanumeric + "_".
+# [\d]  Digits.
+# [\W]  Printable characters other than those in \w.
+# [\D]  Printable characters other than those in \d.
+# [.]   Printable characters.
+# [[]]  Character classes.
+# [{}]  Repetition.
+# [*]   Same as {0,}.
+# [+]   Same as {1,}
+# [?]   Same as {0,1}.
 #
 # === Patterns
 #
@@ -40,22 +40,22 @@
 #
 # The following patterns are pre-defined.
 #
-#  - c  Any lowercase character [a-z]
-#  - C  Any uppercase character [A-Z]
-#  - n  Any digit [0-9]
-#  - !  A punctuation character [~`!@$%^&*()-_+={}[]|\:;"'.<>?/#,]
-#  - .  Any of the above
-#  - s  A "salt" character [A-Za-z0-9./]
-#  - b  Any binary data
+# [c]  Any lowercase character [a-z]
+# [C]  Any uppercase character [A-Z]
+# [n]  Any digit [0-9]
+# [!]  A punctuation character [~`!@$%^&*()-_+={}[]|\:;"'.<>?/#,]
+# [.]  Any of the above
+# [s]  A "salt" character [A-Za-z0-9./]
+# [b]  Any binary data
 #
 # Pattern can modify and add as bellow.
 #
 #    string_random['C'] = ['n']
-#    string_random['A'] = ('A'..'Z').to_a | ('A'..'Z').to_a
+#    string_random['A'] = ('A'..'Z').to_a | ('a'..'z').to_a
 #
-# Pattern must be a flattened array(other types undefined behavior).
+# Pattern must be a flattened array that elements are one character.
+# Other types cause undefined behavior(raise exception).
 #
-
 class StringRandom
   Upper  = ('A'..'Z').to_a
   Lower  = ('a'..'z').to_a
@@ -99,7 +99,7 @@ class StringRandom
   }
 
   #
-  # Class method version of random_regex.
+  # Singleton method version of random_regex.
   #
   def self.random_regex(patterns)
     return StringRandom.new.random_regex(patterns)
@@ -141,7 +141,7 @@ class StringRandom
 
   #
   # Returns a random string that will match 
-  # the regular expression passed in the list argument
+  # the regular expression passed in the list argument.
   #
   def random_regex(patterns)
     return _random_regex(patterns) unless patterns.instance_of?(Array)
@@ -247,6 +247,7 @@ class StringRandom
 
   def regch_bracket(ch, chars, string)
     tmp = []
+
     while ch = chars.shift and ch != ']'
       if ch == '-' and !chars.empty? and !tmp.empty?
         max = chars.shift
@@ -260,21 +261,21 @@ class StringRandom
         tmp << ch
       end
     end
+    raise 'unmatched []' if ch != ']'
 
-    raise "unmatched []" if ch != ']'
     string << tmp
   end
 
   def regch_asterisk(ch, chars, string)
-    chars = "{0,}".split("").concat(chars)
+    chars = '{0,}'.split('').concat(chars)
   end
 
   def regch_plus(ch, chars, string)
-    chars = "{1,}".split("").concat(chars)
+    chars = '{1,}'.split('').concat(chars)
   end
 
   def regch_question(ch, chars, string)
-    chars = "{0,1}".split("").concat(chars)
+    chars = '{0,1}'.split('').concat(chars)
   end
 
   def regch_brace(ch, chars, string)

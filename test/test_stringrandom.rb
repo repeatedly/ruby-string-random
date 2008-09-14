@@ -5,7 +5,7 @@
 $KCODE      = 'u' if RUBY_VERSION < '1.9.0'
 $LOAD_PATH << '../'
 
-require 'lib/strrand'
+require 'lib/stringrandom'
 require 'test/unit'
 
 class TestStringRandom < Test::Unit::TestCase
@@ -24,16 +24,16 @@ class TestStringRandom < Test::Unit::TestCase
     # instance methods
     assert_respond_to(@string_random, :[])
     assert_respond_to(@string_random, :[]=)
-    assert_respond_to(@string_random, :rand_regex)
-    assert_respond_to(@string_random, :rand_pattern)
+    assert_respond_to(@string_random, :random_regex)
+    assert_respond_to(@string_random, :random_pattern)
 
-    # class methods
-    assert_respond_to(StringRandom,   :rand_regex)
-    assert_respond_to(StringRandom,   :rand_string)
+    # singleton methods
+    assert_respond_to(StringRandom, :random_regex)
+    assert_respond_to(StringRandom, :random_string)
   end
 
-  # StringRandom#rand_regex
-  def test_rand_regex
+  # StringRandom#random_regex
+  def test_random_regex
     patterns = ['\d\d\d',
                 '\w\w\w',
                 '[ABC][abc]',
@@ -54,28 +54,28 @@ class TestStringRandom < Test::Unit::TestCase
                 '']
 
     patterns.each do |pattern|
-      result = @string_random.rand_regex(pattern)
+      result = @string_random.random_regex(pattern)
       assert_match(/#{pattern}/, result, "#{result} is invalid: pattern #{pattern}")
     end
 
-    result = @string_random.rand_regex(patterns)
+    result = @string_random.random_regex(patterns)
     assert_equal(patterns.size, result.size)
   end
 
-  # StringRandom#rand_regex
-  def test_rand_regex_invalid
+  # StringRandom#random_regex
+  def test_random_regex_invalid
     patterns = ['[a-z]{a}',
                 '0{,,}',
                 '9{1,z}']
 
     patterns.each do |pattern|
-      assert_raise(RuntimeError, "Non expected: #{pattern}") { @string_random.rand_regex(pattern) }
+      assert_raise(RuntimeError, "Non expected: #{pattern}") { @string_random.random_regex(pattern) }
     end
   end
 
-  # StringRandom#rand_pattern
-  def test_rand_pattern
-    assert_equal(0, @string_random.rand_pattern('').length)
+  # StringRandom#random_pattern
+  def test_random_pattern
+    assert_equal(0, @string_random.random_pattern('').length)
 
     patterns = {
       'x' => ['a'],
@@ -86,18 +86,18 @@ class TestStringRandom < Test::Unit::TestCase
     patterns.each_pair do |key, pattern|
       @string_random[key] = pattern
     end
-    assert_equal('abc', @string_random.rand_pattern('xyz'))
+    assert_equal('abc', @string_random.random_pattern('xyz'))
 
     target = patterns.keys
-    result = @string_random.rand_pattern(target)
+    result = @string_random.random_pattern(target)
     assert_equal(target.size, result.size)
     target.each_with_index do |pattern, i|
       assert_equal(@string_random[pattern][0], result[i])
     end
   end
 
-  # StringRandom#rand_pattern
-  def test_rand_pattern_builtin
+  # StringRandom#random_pattern
+  def test_random_pattern_builtin
     ['C', 'c', 'n', '!', '.', 's', 'b'].each do |val|
       assert_not_nil(@string_random[val])
     end
@@ -109,22 +109,40 @@ class TestStringRandom < Test::Unit::TestCase
 
     # modify built-in pattern
     @string_random['C'] = ['n']
-    assert_equal('n', @string_random.rand_pattern('C'))
+    assert_equal('n', @string_random.random_pattern('C'))
+
+    # undefined behavior
+    count    = 0
+    patterns = {
+      'X' => ('A'..'Z'),
+      'Y' => [['foo,', 'bar'], [['baz']]],
+      'Z' => [true, false],
+      ''  => 'hogehoge' # no raise
+    }
+    patterns.each_pair do |key, pattern|
+      begin
+        @string_random[key] = pattern
+        @string_random.random_pattern(key)
+      rescue Exception
+        count += 1
+      end
+    end
+    assert_equal(patterns.keys.size - 1, count)
 
     # No pollute other object
     @other = StringRandom.new
-    assert_not_equal('n', @other.rand_pattern('C'))
+    assert_not_equal('n', @other.random_pattern('C'))
   end
 
-  # StringRandom#rand_pattern
-  def test_rand_pattern_invalid
+  # StringRandom#random_pattern
+  def test_random_pattern_invalid
     ['A', 'CZ1s', 'Hoge', '\n'].each do |pattern|
-      assert_raise(RuntimeError) { @string_random.rand_pattern(pattern) }
+      assert_raise(RuntimeError) { @string_random.random_pattern(pattern) }
     end
   end
 
-  # StringRandom.rand_regex
-  def test_static_rand_regex
+  # StringRandom.random_regex
+  def test_singleton_random_regex
     patterns = ['\d\d\d',
                 '\w\w\w',
                 '[ABC][abc]',
@@ -145,18 +163,18 @@ class TestStringRandom < Test::Unit::TestCase
                 '']
 
     patterns.each do |pattern|
-      result = StringRandom.rand_regex(pattern)
+      result = StringRandom.random_regex(pattern)
       assert_match(/#{pattern}/, result, "#{result} is invalid: pattern #{pattern}")
     end
   end
 
-  # StringRandom.rand_string
-  def test_static_rand_string
-    assert_match(/\d/, StringRandom.rand_string('n'))
-    assert_raise(RuntimeError) { StringRandom.rand_string('0') }
+  # StringRandom.random_string
+  def test_singleton_random_string
+    assert_match(/\d/, StringRandom.random_string('n'))
+    assert_raise(RuntimeError) { StringRandom.random_string('0') }
 
     # with optional lists
-    assert_equal('abc', StringRandom.rand_string('012', ['a'], ['b'], ['c']))
-    assert_match(/[abc][def][abc][def]/, StringRandom.rand_string('0101', ['a', 'b', 'c'], ['d', 'e', 'f']))
+    assert_equal('abc', StringRandom.random_string('012', ['a'], ['b'], ['c']))
+    assert_match(/[abc][def]/, StringRandom.random_string('01', ['a', 'b', 'c'], ['d', 'e', 'f']))
   end
 end
