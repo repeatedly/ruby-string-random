@@ -99,14 +99,14 @@ class StringRandom
   # Singleton method version of random_regex.
   #
   def self.random_regex(patterns)
-    return StringRandom.new.random_regex(patterns)
+    StringRandom.new.random_regex(patterns)
   end
 
   #
   # Same as StringRandom#random_pattern if single argument.
   # Optionally, references to lists containing 
   # other patterns can be passed to the function.  
-  # Those lists will be used for 0 through 9 in the pattern 
+  # Those lists will be used for 0 through 9 in the pattern. 
   #
   def self.random_string(pattern, *pattern_list)
     string_random = StringRandom.new
@@ -115,7 +115,7 @@ class StringRandom
       string_random[i.to_s] = new_pattern
     end
 
-    return string_random.random_pattern(pattern)
+    string_random.random_pattern(pattern)
   end
 
   #
