@@ -1,8 +1,14 @@
-2008-09-14 tama <repeatedly@gmail.com>
+2008-09-15  tama  <repeatedly@gmail.com>
+
+	* Refactoring lib/stringrandom.rb.
+
+	* Modify README.
+
+2008-09-14  tama  <repeatedly@gmail.com>
 
 	* Rename lib/strrand.rb -> lib/stringrandom.rb.
 
-	* Rename test/test_strrand.rb -> test/test_stringrandom.rb
+	* Rename test/test_strrand.rb -> test/test_stringrandom.rb.
 
 	* Modify method names.
 
@@ -14,12 +20,12 @@
 
 	* Add undefined behavior tests for random_pattern.
 
-2008-09-14 tama <repeatedly@gmail.com>
+2008-09-14  tama  <repeatedly@gmail.com>
 
 	* Version 0.1.1.
 
 	* Fix for Ruby 1.9.
 
-2008-09-13 tama <repeatedly@gmail.com>
+2008-09-13  tama  <repeatedly@gmail.com>
 
 	* Version 0.1.0.

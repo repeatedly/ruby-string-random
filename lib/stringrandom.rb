@@ -10,8 +10,8 @@
 #
 # == Example
 #
-#    string_random = StringRandom.new
-#    string_random.random_pattern('CCcc!ccn')  #=> ZIop$ab1
+#   string_random = StringRandom.new
+#   string_random.random_pattern('CCcc!ccn')  #=> ZIop$ab1
 #
 # refer to test/test_stringrandom.rb
 #
@@ -50,19 +50,17 @@
 #
 # Pattern can modify and add as bellow.
 #
-#    string_random['C'] = ['n']
-#    string_random['A'] = ('A'..'Z').to_a | ('a'..'z').to_a
+#   string_random['C'] = ['n']
+#   string_random['A'] = Array('A'..'Z') | Array('a'..'z')
 #
 # Pattern must be a flattened array that elements are one character.
-# Other types cause undefined behavior(raise exception).
+# Other types cause undefined behavior(raise exception, success, etc...).
 #
 class StringRandom
-  Upper  = ('A'..'Z').to_a
-  Lower  = ('a'..'z').to_a
-  Digit  = ('0'..'9').to_a
-  Punct  = [33..47, 58..64, 91..96, 123..126].map do |range|
-    range.map { |val| val.chr }
-  end.flatten
+  Upper  = Array('A'..'Z')
+  Lower  = Array('a'..'z')
+  Digit  = Array('0'..'9')
+  Punct  = [33..47, 58..64, 91..96, 123..126].map { |r| r.map { |val| val.chr } }.flatten
   Any    = Upper | Lower | Digit | Punct
   Salt   = Upper | Lower | Digit | ['.', '/']
   Binary = (0..255).map { |val| val.chr }
@@ -86,7 +84,6 @@ class StringRandom
     '\a' => ["\a"],
     '\e' => ["\e"]
   }
-  # What's important is how they relate to the pattern characters.
   # These are the old patterns for random_pattern.
   OldPattern = {
     'C' => Upper,
@@ -110,11 +107,10 @@ class StringRandom
   # Optionally, references to lists containing 
   # other patterns can be passed to the function.  
   # Those lists will be used for 0 through 9 in the pattern 
-  # (The pattern of after 10 can't refer).
   #
   def self.random_string(pattern, *pattern_list)
     string_random = StringRandom.new
-    
+
     pattern_list.each_with_index do |new_pattern, i|
       string_random[i.to_s] = new_pattern
     end
@@ -217,12 +213,13 @@ class StringRandom
     string
   end
 
-  #
+  #-
   # The folloing methods are defined for regch.
   # These characters are treated specially in random_regex.
-  #
+  #+
+
   def regch_slash(ch, chars, string)
-    raise "regex not terminated" if chars.empty?
+    raise 'regex not terminated' if chars.empty?
 
     tmp = chars.shift
     if tmp == 'x'
@@ -231,7 +228,7 @@ class StringRandom
       tmp = chars.shift + chars.shift
       string << tmp.hex.chr
     elsif tmp =~ /[0-7]/
-      warn "octal parsing not implemented. treating literally."
+      warn 'octal parsing not implemented. treating literally.'
       string << tmp
     elsif Pattern.has_key?(ch + tmp)
       string << Pattern[ch + tmp]
@@ -250,12 +247,9 @@ class StringRandom
 
     while ch = chars.shift and ch != ']'
       if ch == '-' and !chars.empty? and !tmp.empty?
-        max = chars.shift
-        min = tmp.last
-        while min < max
-          min  = min.succ
-          tmp << min
-        end
+        max  = chars.shift
+        min  = tmp.last
+        tmp << min = min.succ while min < max
       else
         warn "${ch}' will be treated literally inside []" if ch =~ /\W/
         tmp << ch
@@ -302,9 +296,7 @@ class StringRandom
 
     if tmp.nonzero?
       last = string.last
-      (tmp - 1).times do
-        string << last
-      end
+      (tmp - 1).times { string << last }
     else
       string.pop
     end
