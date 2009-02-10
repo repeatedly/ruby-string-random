@@ -5,7 +5,7 @@
 $KCODE      = 'u' if RUBY_VERSION < '1.9.0'
 $LOAD_PATH << '../'
 
-require 'lib/stringrandom'
+require 'lib/strrand'
 require 'test/unit'
 
 class TestStringRandom < Test::Unit::TestCase

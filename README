@@ -6,11 +6,11 @@ The original code released in http://search.cpan.org/~steve/String-Random-0.22/
 
 # How to use
 
-Exmaples are written in test_stringrandom.rb.
+Exmaples are written in test_strrand.rb.
 
 # Author
 
-tama <repeatedly@gmail.com>
+tama
 
 # License
 

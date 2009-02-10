@@ -1,3 +1,9 @@
+2008-02-11  tama  <repeatedly@gmail.com>
+
+	* Rename lib/stringrandom.rb -> lib/strrand.rb.
+
+	* Rename test/test_stringrandom.rb -> test/test_strrand.rb.
+
 2008-09-15  tama  <repeatedly@gmail.com>
 
 	* Refactoring lib/stringrandom.rb.

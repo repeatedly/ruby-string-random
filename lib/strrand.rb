@@ -1,9 +1,7 @@
-# -*- mode: ruby; coding: utf-8 -*-
-
 #
 # = strrand.rb: Generates a random string from a pattern
 #
-# Author:: Tama <repeatedly@gmail.com>
+# Author:: tama <repeatedly@gmail.com>
 #
 # StringRandom is derived from the String::Random written in Perl.
 # See http://search.cpan.org/~steve/String-Random-0.22/
