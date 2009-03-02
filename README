@@ -8,10 +8,8 @@ The original code released in http://search.cpan.org/~steve/String-Random-0.22/
 
 Exmaples are written in test_strrand.rb.
 
-# Author
+# Copyright
 
-tama
+    Copyright (c) 2008 Masahiro Nakagawa
 
-# License
-
-Ruby License
+This library is released under the Ruby license.
